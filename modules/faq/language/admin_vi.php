@@ -79,3 +79,15 @@ $lang_module['email_titile']='NukeViet';
 $lang_module['email_titile_accept']='Thông báo kết quả duyệt bài đăng hỏi đáp';
 $lang_module['email_body_accept']='Bài đăng hỏi đáp của bạn tại %s đã được duyệt mời bạn <a href="%s">vào đây</a> để xem';
 $lang_module['email_body_error']='Bài đăng hỏi đáp của bạn tại %s không hợp lệ nên đã bị xóa mời bạn <a href="%s">vào đây</a> để đăng bài viết mới ';
+
+//search
+$lang_module['search_type'] = 'Tìm kiếm theo';
+$lang_module['search_cat'] = 'Chủ đề';
+$lang_module['date_from'] = 'Từ ngày';
+$lang_module['date_to'] = 'Đến ngày';
+$lang_module['search_per_page'] = 'Hiển thị';
+$lang_module['search_key'] = 'Từ khóa tìm kiếm';
+$lang_module['search'] = 'Tìm kiếm';
+$lang_module['search_note'] = 'Từ khóa tìm kiếm không ít hơn %d ký tự, không lớn hơn %d ký tự, không dùng các mã html';
+$lang_module['faq_id'] = 'Mã số';
+$lang_module['search_note'] = 'Từ khóa tìm kiếm không ít hơn %d ký tự, không lớn hơn %d ký tự, không dùng các mã html';

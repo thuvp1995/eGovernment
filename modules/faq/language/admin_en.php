@@ -63,3 +63,14 @@ $lang_module['config_type_main'] = 'Ways to show on the home page';
 $lang_module['config_type_main_0'] = 'Displaying Topics';
 $lang_module['config_type_main_1'] = 'List, newer first';
 $lang_module['config_type_main_2'] = 'List, oldest First';
+
+//search
+$lang_module['search_type'] = 'Search by';
+$lang_module['search_cat'] = 'Topic';
+$lang_module['date_from'] = 'From date';
+$lang_module['date_to'] = 'To date';
+$lang_module['search_per_page'] = 'Display';
+$lang_module['search_key'] = 'Keyword search';
+$lang_module['search'] = 'Search';
+$lang_module['search_note'] = 'Search keywords are no less than% d characters, no more than% d characters, no html codes';
+$lang_module['faq_id'] = 'Id';
