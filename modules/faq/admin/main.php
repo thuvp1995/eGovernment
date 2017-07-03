@@ -341,6 +341,12 @@ if ($nv_Request->isset_request('del', 'post')) {
     die('OK');
 }
 
+//kiểu search
+$array_search = array(
+    'id' => $lang_module['faq_id'],
+    'title' => $lang_module['faq_title_faq']
+);
+
 //List faq
 $listcats = array();
 $listcats[0] = array(
@@ -355,56 +361,113 @@ if (empty($listcats)) {
     exit();
 }
 
+$base_url = NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name;
 $page_title = $lang_module['faq_manager'];
+$stype = $nv_Request->get_string('stype', 'get', '-');
+$catid = $nv_Request->get_int('catid', 'get', 0);
+$from_time = $nv_Request->get_string('from', 'get', '');
+$to_time = $nv_Request->get_string('to', 'get', '');
+$per_page_old = $nv_Request->get_int('per_page', 'cookie', 50);
+$per_page = $nv_Request->get_int('per_page', 'get', $per_page_old);
+
+if ($per_page < 1 and $per_page > 500) {
+    $per_page = 50;
+}
+
+if ($per_page_old != $per_page) {
+    $nv_Request->set_Cookie('per_page', $per_page, NV_LIVE_COOKIE_TIME);
+}
+$q = $nv_Request->get_title('q', 'get', '');
+$q = str_replace('+', ' ', $q);
+$q = nv_substr($q, 0, NV_MAX_SEARCH_LENGTH);
+$qhtml = nv_htmlspecialchars($q);
 
 $page = $nv_Request->get_int('page', 'get', 1);
-$per_page = 30;
+$checkss = $nv_Request->get_string('checkss', 'get', '');
+$from = '';
 
-$sql = "SELECT SQL_CALC_FOUND_ROWS * FROM " . NV_PREFIXLANG . "_" . $module_data . "";
-$base_url = NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name;
-
-if ($nv_Request->isset_request("catid", "get")) {
-    $catid = $nv_Request->get_int('catid', 'get', 0);
-    if (! $catid or ! isset($listcats[$catid])) {
-        Header('Location: ' . NV_BASE_ADMINURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&' . NV_NAME_VARIABLE . '=' . $module_name);
-        exit();
+if ($checkss == md5(session_id())) {
+    $base_url .= "&amp;checkss=" . md5(session_id());
+    // Tim theo tu khoa
+    if (!empty($q)) {
+        $base_url .= "&amp;q=" . $q;
+        if ($stype != '-') {
+            if ($stype == 'id') {
+                $str_searchid = $searchid = '';
+                $str_searchid = explode("HD ", $db->dblikeescape($q));
+                if (sizeof($str_searchid) == 2) {
+                    $searchid = $str_searchid[1];
+                } else {
+                    $searchid = $db->dblikeescape($q);
+                }
+                $from .= " WHERE id  = " . $searchid;
+            } elseif ($stype == 'title') {
+                $from .= " WHERE title LIKE '%" . $db->dblikeescape($q) . "%' ";
+            }
+            $base_url .= "&amp;stype=" . $stype;
+        }
+        else
+        {
+            $from .= ' WHERE (title LIKE "%' . $db->dblikeescape($q) . '%" OR question LIKE "%' . $db->dblikeescape($q) . '%" OR answer LIKE "%' . $db->dblikeescape($q) . '%")';
+        }
     }
 
-    $caption = sprintf($lang_module['faq_list_by_cat'], $listcats[$catid]['title']);
-    $sql .= " WHERE catid=" . $catid . " ORDER BY weight ASC";
-    $base_url .= "&amp;catid=" . $catid;
+    // Tim theo loai san pham
+    if (!empty($catid)) {
+        if (!empty($from)) {
+            $from .= ' AND';
+        } else
+            $from .= ' WHERE';
+            $from .= ' catid=' . $catid;
+    }
 
-    define('NV_IS_CAT', true);
+    // Tim theo ngay thang
+    if (!empty($from_time)) {
+        if (empty($q) and empty($catid)) {
+            $from .= ' WHERE';
+        } else {
+            $from .= ' AND';
+        }
+
+        if (!empty($from_time) and preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $from_time, $m)) {
+            $time = mktime(0, 0, 0, $m[2], $m[1], $m[3]);
+        } else {
+            $time = NV_CURRENTTIME;
+        }
+
+        $from .= ' addtime >= ' . $time . '';
+        $base_url .= "&amp;from_time=" . $from_time;
+    }
+
+    if (!empty($to_time)) {
+        if (empty($q) and empty($catid) and empty($from_time)) {
+            $from .= ' WHERE';
+        } else {
+            $from .= ' AND';
+        }
+
+        if (!empty($to_time) and preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $to_time, $m)) {
+            $to = mktime(23, 59, 59, $m[2], $m[1], $m[3]);
+        } else {
+            $to = NV_CURRENTTIME;
+        }
+        $from .= ' addtime <= ' . $to . '';
+        $base_url .= "&amp;to_time=" . $to_time;
+    }
+}
+
+$sql = "SELECT SQL_CALC_FOUND_ROWS * FROM " . NV_PREFIXLANG . "_" . $module_data . "";
+if (!empty($from)) $sql .= $from;
+$sql .= ' ORDER BY id DESC';
+if (!empty($page)) {
+    $sql .= " LIMIT " . $per_page . " OFFSET " . ($page - 1) * $per_page;
 } else {
-    $caption = $lang_module['faq_manager'];
-    $sql .= " ORDER BY id DESC";
-}
-
-if(!empty($page)) {
-	$sql .= " LIMIT "  . $per_page." OFFSET ".($page - 1) * $per_page;
-}
-else {
-	$sql .= " LIMIT "  . $per_page;
+    $sql .= " LIMIT " . $per_page;
 }
 
 $query = $db->query($sql);
-
 $result = $db->query("SELECT FOUND_ROWS()");
 $all_page = $result->fetchColumn();
-
-if (! $all_page) {
-    if (defined('NV_IS_CAT')) {
-        $contents = "";
-        include NV_ROOTDIR . '/includes/header.php';
-        echo nv_admin_theme($contents);
-        include NV_ROOTDIR . '/includes/footer.php';
-        exit();
-    } else {
-        Header("Location: " . NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&" . NV_NAME_VARIABLE . "=" . $module_name . "&add=1");
-        exit();
-    }
-}
-
 $array = array();
 
 while ($row = $query->fetch()) {
@@ -434,8 +497,17 @@ $array_status = array( $lang_module['faq_no_active'],$lang_module['faq_active'],
 $xtpl = new XTemplate("main.tpl", NV_ROOTDIR . "/themes/" . $global_config['module_theme'] . "/modules/" . $module_file);
 $xtpl->assign('LANG', $lang_module);
 $xtpl->assign('GLANG', $lang_global);
-$xtpl->assign('TABLE_CAPTION', $caption);
 $xtpl->assign('ADD_NEW_FAQ', NV_BASE_ADMINURL . "index.php?" . NV_LANG_VARIABLE . "=" . NV_LANG_DATA . "&amp;" . NV_NAME_VARIABLE . "=" . $module_name . "&amp;add=1");
+$xtpl->assign('MODULE_NAME', $module_name);
+$xtpl->assign('OP', $op);
+
+// Thong tin tim kiem
+$xtpl->assign('Q', $q);
+$xtpl->assign('FROM', $from_time);
+$xtpl->assign('TO', $to_time);
+$xtpl->assign('CHECKSESS', md5(session_id()));
+$xtpl->assign('SEARCH_NOTE', sprintf($lang_module['search_note'], NV_MIN_SEARCH_LENGTH, NV_MAX_SEARCH_LENGTH));
+$xtpl->assign('NV_MAX_SEARCH_LENGTH', NV_MAX_SEARCH_LENGTH);
 
 if (defined('NV_IS_CAT')) {
     $xtpl->parse('main.is_cat1');
@@ -445,6 +517,7 @@ if (! empty($array)) {
     $a = 0;
     foreach ($array as $row) {
         $xtpl->assign('CLASS', $a % 2 == 1 ? " class=\"second\"" : "");
+        $row['id_faq'] = 'HD ' . $row['id'];
         $xtpl->assign('ROW', $row);
 
         if (defined('NV_IS_CAT')) {
@@ -467,6 +540,42 @@ if (! empty($array)) {
         $xtpl->parse('main.row');
         ++$a;
     }
+}
+
+// Kieu tim kiem
+foreach ($array_search as $key => $val) {
+    $xtpl->assign('STYPE', array(
+        'key' => $key,
+        'title' => $val,
+        'selected' => ($key == $stype) ? ' selected="selected"' : ''
+    ));
+    $xtpl->parse('main.stype');
+}
+
+//$array_cat
+$i = 0;
+foreach ($listcats as $key => $val) {
+    if ($i > 0) {
+        $xtpl->assign('CATID', array(
+            'key' => $val['id'],
+            'title' => $val['name'],
+            'selected' => ($val['id'] == $catid) ? ' selected="selected"' : ''
+        ));
+        $xtpl->parse('main.catid');
+    }
+    $i++;
+}
+
+// So bài hien thi
+$i = 5;
+while ($i <= 1000) {
+    $xtpl->assign('PER_PAGE', array(
+        'key' => $i,
+        'title' => $i,
+        'selected' => ($i == $per_page) ? ' selected="selected"' : ''
+    ));
+    $xtpl->parse('main.per_page');
+    $i = $i + 5;
 }
 
 if (! empty($generate_page)) {
