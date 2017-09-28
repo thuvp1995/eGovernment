@@ -1,13 +1,13 @@
 <?php
 
 /**
-* @Project NUKEVIET 4.x
-* @Author VINADES.,JSC (contact@vinades.vn)
-* @Copyright (C) 2014 VINADES.,JSC. All rights reserved
-* @Language English
-* @License CC BY-SA (http://creativecommons.org/licenses/by-sa/4.0/)
- * @Createdate Oct 25, 2012, 04:42:13 PM
-*/
+ * @Project NUKEVIET 4.x
+ * @Author VINADES.,JSC (contact@vinades.vn)
+ * @Copyright (C) 2017 VINADES.,JSC. All rights reserved
+ * @Language English
+ * @License CC BY-SA (http://creativecommons.org/licenses/by-sa/4.0/)
+ * @Createdate 04/14/2017 09:47
+ */
 
 if (! defined('NV_ADMIN') or ! defined('NV_MAINFILE')) {
     die('Stop!!!');
@@ -63,3 +63,14 @@ $lang_module['config_type_main'] = 'Ways to show on the home page';
 $lang_module['config_type_main_0'] = 'Displaying Topics';
 $lang_module['config_type_main_1'] = 'List, newer first';
 $lang_module['config_type_main_2'] = 'List, oldest First';
+
+//search
+$lang_module['search_type'] = 'Search by';
+$lang_module['search_cat'] = 'Topic';
+$lang_module['date_from'] = 'From date';
+$lang_module['date_to'] = 'To date';
+$lang_module['search_per_page'] = 'Display';
+$lang_module['search_key'] = 'Keyword search';
+$lang_module['search'] = 'Search';
+$lang_module['search_note'] = 'Search keywords are no less than% d characters, no more than% d characters, no html codes';
+$lang_module['faq_id'] = 'Id';
